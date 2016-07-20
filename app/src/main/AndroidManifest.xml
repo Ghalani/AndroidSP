@@ -98,7 +98,8 @@
             android:exported="false" />
 
         <activity android:name=".activity.TeamActivity" />
-        <activity android:name=".activity.TeamTaskActivity"></activity>
+        <activity android:name=".activity.TeamTaskActivity" />
+        <activity android:name=".activity.TaskReportActivity"></activity>
     </application>
 
 </manifest>

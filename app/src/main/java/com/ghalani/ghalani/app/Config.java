@@ -5,8 +5,8 @@ package com.ghalani.ghalani.app;
  */
 public class Config {
     // server URL configuration
-    public static final String URL_ROOT = "http://10.248.83.71:3000/api/v1";
-    //public static final String URL_ROOT = "http://10.0.2.2:3000/api/v1";
+    //public static final String URL_ROOT = "http://10.248.83.71:3000/api/v1";
+    public static final String URL_ROOT = "http://10.0.2.2:3000/api/v1";
     public static final String URL_REQUEST_SMS = URL_ROOT+"/sp_sessions/new";
     public static final String URL_VERIFY_OTP = URL_ROOT+"/sp_sessions/";
 
