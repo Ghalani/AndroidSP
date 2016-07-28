@@ -50,13 +50,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //getActionBar().setTitle("Hello world App");
+        getSupportActionBar().setTitle("Home");  // provide compatibility to all the versions
+
         name = (TextView) findViewById(R.id.name);
         mobile = (TextView) findViewById(R.id.mobile);
 
         // enabling toolbar
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        //setSupportActionBar(toolbar);
+        //getSupportActionBar().setDisplayShowHomeEnabled(true);
         pref = new PrefManager(getApplicationContext());
 
         // Checking if user session
@@ -150,14 +153,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_logout) {
-            logout();
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_logout:
+                logout();
+                break;
         }
-
         return super.onOptionsItemSelected(item);
     }
 

@@ -11,9 +11,9 @@
         android:layout_alignParentTop="true"
         android:orientation="vertical">
 
-        <include
-            android:id="@+id/toolbar"
-            layout="@layout/toolbar" />
+        <!--<include-->
+            <!--android:id="@+id/toolbar"-->
+            <!--layout="@layout/toolbar" />-->
     </LinearLayout>
 
     <LinearLayout
@@ -41,7 +41,8 @@
             android:id="@+id/team_list_main"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="15dp">
+            android:padding="15dp"
+            android:listSelector="@drawable/item" >
         </ListView>
     </LinearLayout>
 </RelativeLayout>

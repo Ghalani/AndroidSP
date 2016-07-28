@@ -3,15 +3,29 @@ package com.ghalani.ghalani.activity;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.FloatingActionButton;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.ghalani.ghalani.R;
+import com.ghalani.ghalani.app.Config;
+import com.ghalani.ghalani.app.MyApplication;
+import com.ghalani.ghalani.helper.PrefManager;
 import com.ghalani.ghalani.helper.TextLogHelper;
 import com.ghalani.ghalani.item.task.TeamTask;
 
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,13 +33,15 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TaskReportActivity extends AppCompatActivity implements View.OnClickListener {
     LinearLayout reportFormHolder;
     TeamTask tt;
     JSONArray fields;
-    List<EditText> fieldList;
+    ArrayList fieldList;
     FloatingActionButton submitBut;
+    PrefManager pref;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,11 +57,12 @@ public class TaskReportActivity extends AppCompatActivity implements View.OnClic
         reportFormHolder = (LinearLayout) findViewById(R.id.report_form_holder);
         appendFields();
         submitBut.setOnClickListener(this);
+        pref = new PrefManager(getApplicationContext());
     }
 
     private void appendFields() {
         int i = 0;
-        fieldList = new ArrayList<EditText>();
+        fieldList = new ArrayList();
         while (i < fields.length()){
             try {
                 JSONObject f = fields.getJSONObject(i);
@@ -58,6 +75,17 @@ public class TaskReportActivity extends AppCompatActivity implements View.OnClic
                     fieldList.add(ed);
                     //ed.setText("" + i);ed.setInputType(2);ed.setLayoutParams(lparams);
                     reportFormHolder.addView(ed);
+                } else{
+                    final TextView tv = new TextView(this);
+                    tv.setText(name);
+                    final CheckBox cb = new CheckBox(this);
+                    LinearLayout holder = new LinearLayout(this);
+
+                    holder.addView(cb);
+                    holder.addView(tv);
+
+                    fieldList.add(cb);
+                    reportFormHolder.addView(holder);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -70,13 +98,18 @@ public class TaskReportActivity extends AppCompatActivity implements View.OnClic
         HashMap<String, String> hm = new HashMap<>();
         int i = 0;
         while (i < fields.length()){
+            JSONObject field = new JSONObject();
+            String activeField = "";
             try {
-                JSONObject field = fields.getJSONObject(i);
+                field = fields.getJSONObject(i);
                 String val = "";
-                if (field.getString("field_type").equals("text_field")) {
-                    val = fieldList.get(i).getText().toString();
-                    if (field.getBoolean("required") && val.length() < 2)
+                activeField = field.getString("field_type");
+                if (activeField.equals("text_field")) {
+                    val =  ((EditText) fieldList.get(i)).getText().toString();
+                    if (field.getBoolean("required") && val.length() < 1)
                         throw new Exception(String.valueOf(i));
+                }else{
+                    val = String.valueOf(((CheckBox) fieldList.get(i)).isChecked());
                 }
 
                 hm.put(field.getString("name"), val);
@@ -85,12 +118,81 @@ public class TaskReportActivity extends AppCompatActivity implements View.OnClic
             } catch (Exception e) {
                 //e.printStackTrace();
                 TextLogHelper.toast(this, "This field is required", false);
-                fieldList.get(Integer.valueOf(i)).setBackgroundColor(Color.BLUE);
+                if (activeField.equals("text_field")) {
+                    ((EditText) fieldList.get(i)).setBackgroundColor(Color.argb(55, 40, 0, 0));
+                }else{
+                    ((CheckBox) fieldList.get(i)).setBackgroundColor(Color.BLUE);
+                }
+                return;
             }
             i++;
         }
 
         TextLogHelper.log("OUT: "+ (new JSONObject(hm)).toString());
+        //  localhost:3000/api/v1/team_activity_reports?access_token=f1c9e777458aaf45e09f89810c576944
+        JSONObject out = new JSONObject();
+        try {
+            out.put("service_provider_id", pref.getSPId());
+            out.put("team_activity_id", tt.getId());
+            out.put("report", (new JSONObject(hm)).toString());
+            out.put("datetime", (new DateTime()).toString());
+            sendReport(out);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        /*
+        {
+            "team_activity_report":{
+                "service_provider_id": pref.getSPId(),
+                "team_activity_id":tt.getId(),
+                "report":{
+                    "range":"sduys",
+                    "house":"sdsjhdjshd"
+                },
+                "datetime":""
+            }
+        }
+         */
+    }
+
+    private void sendReport(final JSONObject out) {
+        String url = Config.URL_TEAM_ACTIVITY_REPORT+"?access_token="+pref.getAccessToken();
+        TextLogHelper.log(url);
+        StringRequest strReq = new StringRequest(Request.Method.POST,
+                url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject responseObj = new JSONObject(response);
+                    TextLogHelper.log("RESPONSE: " + responseObj.toString());
+                } catch (JSONException e) {
+                    TextLogHelper.log("Error: " + e.getMessage());
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                TextLogHelper.log("Error: " + error.getMessage());
+                TextLogHelper.toast(getApplicationContext(), error.getMessage(), false);
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("team_activity_report", out.toString());
+                return params;
+            }
+        };
+
+        int socketTimeout = 10000;
+        RetryPolicy policy = new DefaultRetryPolicy(socketTimeout,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+        strReq.setRetryPolicy(policy);
+
+        // Adding request to request queue
+        MyApplication.getInstance().addToRequestQueue(strReq);
     }
 
     @Override

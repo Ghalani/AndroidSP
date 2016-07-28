@@ -6,9 +6,11 @@ package com.ghalani.ghalani.app;
 public class Config {
     // server URL configuration
     //public static final String URL_ROOT = "http://10.248.83.71:3000/api/v1";
-    public static final String URL_ROOT = "http://10.0.2.2:3000/api/v1";
+    public static final String URL_ROOT = "http://www.ghalani.com/api/v1";
+    //public static final String URL_ROOT = "http://10.0.2.2:3000/api/v1";
     public static final String URL_REQUEST_SMS = URL_ROOT+"/sp_sessions/new";
     public static final String URL_VERIFY_OTP = URL_ROOT+"/sp_sessions/";
+    public static final String URL_TEAM_ACTIVITY_REPORT = URL_ROOT+"/team_activity_reports";
 
     // SMS provider identification
     // It should match with your SMS gateway origin

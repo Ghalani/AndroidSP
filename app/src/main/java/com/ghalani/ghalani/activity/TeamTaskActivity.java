@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -37,6 +38,10 @@ public class TeamTaskActivity extends AppCompatActivity implements View.OnClickL
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_team_task);
+
+        getSupportActionBar().setTitle("Activity details");  // provide compatibility to all the versions
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         Bundle b = getIntent().getExtras();
         tt = (TeamTask) b.getSerializable("team_task_detail");
 
@@ -62,8 +67,8 @@ public class TeamTaskActivity extends AppCompatActivity implements View.OnClickL
         final DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");
         startDate = daysBetween(LocalDate.now(), dtf.parseLocalDate(tt.getStart()));
         endDate = daysBetween(LocalDate.now(), dtf.parseLocalDate(tt.getEnd()));
-        start.setText((startDate == 0 ? "today" : startDate) + "days "+(startDate < 0 ? "ago" : ""));
-        end.setText((endDate == 0 ? "today" : endDate) + "days "+(endDate < 0 ? "ago" : ""));
+        start.setText((startDate == 0 ? "today" : startDate + "days ") + (startDate < 0 ? "ago" : ""));
+        end.setText((endDate == 0 ? "today" : endDate + "days ") + (endDate < 0 ? "ago" : ""));
         /*TextLogHelper.log("Start: " + daysBetween(LocalDate.now(), dtf.parseLocalDate(tt.getStart())));
         TextLogHelper.log("End: " + daysBetween(LocalDate.now(), dtf.parseLocalDate(tt.getEnd())));*/
         reportBut.setOnClickListener(this);
@@ -89,5 +94,15 @@ public class TeamTaskActivity extends AppCompatActivity implements View.OnClickL
                     TextLogHelper.toast(this, "This activity has not started", false);
                 break;
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                this.finish();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

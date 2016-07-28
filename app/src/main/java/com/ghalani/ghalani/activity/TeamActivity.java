@@ -3,6 +3,7 @@ package com.ghalani.ghalani.activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -43,6 +44,10 @@ public class TeamActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_team);
+
+        getSupportActionBar().setTitle("Activity list");  // provide compatibility to all the versions
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         pref = new PrefManager(getApplicationContext());
         Bundle b = getIntent().getExtras();
         tm = (Team) b.getSerializable("team_detail");
@@ -111,6 +116,16 @@ public class TeamActivity extends AppCompatActivity implements AdapterView.OnIte
 
         // Adding request to request queue
         MyApplication.getInstance().addToRequestQueue(strReq);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                this.finish();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
