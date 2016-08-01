@@ -2,6 +2,7 @@ package com.ghalani.ghalani.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -10,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,13 +32,15 @@ import com.ghalani.ghalani.helper.PrefManager;
 import com.ghalani.ghalani.helper.TextLogHelper;
 import com.ghalani.ghalani.item.team.Team;
 import com.ghalani.ghalani.item.team.TeamListAdapter;
+import com.github.ybq.android.spinkit.style.DoubleBounce;
+import com.github.ybq.android.spinkit.style.ThreeBounce;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener {
 
     private Toolbar toolbar;
     private PrefManager pref;
@@ -44,6 +48,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private TeamListAdapter adapter;
     ListView teamListView;
     private List<Team> teamList;
+    ProgressBar progressBar;
+    FloatingActionButton reloadBut;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         name = (TextView) findViewById(R.id.name);
         mobile = (TextView) findViewById(R.id.mobile);
+        reloadBut = (FloatingActionButton) findViewById(R.id.reload_but);
 
         // enabling toolbar
         //setSupportActionBar(toolbar);
@@ -67,7 +74,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         if (!pref.isLoggedIn()) {
             logout();
         }
-
+        progressBar = (ProgressBar)findViewById(R.id.progress);
+        ThreeBounce tb = new ThreeBounce(); // https://android-arsenal.com/details/1/3305
+        progressBar.setIndeterminateDrawable(tb);
         initTeams();
 
         // Displaying user information from shared preferences
@@ -80,15 +89,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         teamListView = (ListView) findViewById(R.id.team_list_main);
         teamListView.setAdapter(adapter);
         teamListView.setOnItemClickListener(this);
+
+
     }
 
     private void initTeams() {
+        showDialog();
         StringRequest strReq = new StringRequest(Request.Method.GET,
                 Config.URL_ROOT+"/service_providers/"+pref.getSPId()+"?access_token="+pref.getAccessToken(), new Response.Listener<String>() {
 
             @Override
             public void onResponse(String response) {
+                hideDialog();
                 TextLogHelper.log(response.toString());
+                showReload(false);
 
                 try {
                     JSONObject responseObj = new JSONObject(response);
@@ -107,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                             "Error: " + e.getMessage(),
                             Toast.LENGTH_LONG).show();
 
-                    //progressBar.setVisibility(View.GONE);
+                    //hideDialog();
                 }
 
             }
@@ -116,12 +130,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             @Override
             public void onErrorResponse(VolleyError error) {
                 TextLogHelper.log("Error: " + error.getMessage());
-                TextLogHelper.toast(MainActivity.this, error.getMessage(), false);
-                //progressBar.setVisibility(View.GONE);
+                TextLogHelper.toast(MainActivity.this, "Reload: Unable to connect to server", true);
+                showReload(true);
+                hideDialog();
             }
         });
 
-        int socketTimeout = 60000;
+        int socketTimeout = 15000;
         RetryPolicy policy = new DefaultRetryPolicy(socketTimeout,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
@@ -144,7 +159,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         finish();
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -163,11 +177,38 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        TextLogHelper.log("Clicked: 1");
         final Intent intent = new Intent(this, TeamActivity.class);
         Team hm = teamList.get(position);
         Bundle b = new Bundle();
         b.putSerializable("team_detail", hm);
+        TextLogHelper.log("Clicked: After serialize");
         intent.putExtras(b);
+        TextLogHelper.log("Clicked: "+ hm.getName());
         startActivity(intent);
+    }
+
+    public void showDialog(){
+        progressBar.setVisibility(View.VISIBLE);
+    }
+    public void hideDialog(){
+        progressBar.setVisibility(View.GONE);
+    }
+
+    public void showReload(Boolean show){
+        if (show){
+            reloadBut.setVisibility(View.VISIBLE);
+        } else {
+            reloadBut.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.reload_but:
+                initTeams();
+                break;
+        }
     }
 }

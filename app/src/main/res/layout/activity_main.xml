@@ -19,9 +19,10 @@
     <LinearLayout
         android:id="@+id/layout_mobile"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_centerInParent="false"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="#f5f5f5">
 
         <TextView
             android:id="@+id/name"
@@ -37,12 +38,39 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:textSize="18dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
+            android:gravity="center">
+            <com.github.ybq.android.spinkit.SpinKitView
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/progress"
+                style="@style/SpinKitView.Large.Circle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                app:SpinKit_Color="@color/colorAccent"
+                android:visibility="gone" />
+        </LinearLayout>
+
         <ListView
             android:id="@+id/team_list_main"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="15dp"
-            android:listSelector="@drawable/item" >
+            android:listSelector="@drawable/item"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="10.0sp">
         </ListView>
     </LinearLayout>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/reload_but"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:visibility="gone"
+        android:src="@android:drawable/ic_menu_rotate"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="0dp"/>
 </RelativeLayout>

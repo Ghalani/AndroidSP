@@ -17,6 +17,7 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.ghalani.ghalani.R;
 import com.ghalani.ghalani.app.Config;
@@ -95,7 +96,7 @@ public class TaskReportActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void readFields(){
-        HashMap<String, String> hm = new HashMap<>();
+        JSONObject hm = new JSONObject();
         int i = 0;
         while (i < fields.length()){
             JSONObject field = new JSONObject();
@@ -128,15 +129,17 @@ public class TaskReportActivity extends AppCompatActivity implements View.OnClic
             i++;
         }
 
-        TextLogHelper.log("OUT: "+ (new JSONObject(hm)).toString());
+        TextLogHelper.log("OUT: "+ hm.toString());
         //  localhost:3000/api/v1/team_activity_reports?access_token=f1c9e777458aaf45e09f89810c576944
         JSONObject out = new JSONObject();
+        JSONObject tsr = new JSONObject();
         try {
             out.put("service_provider_id", pref.getSPId());
             out.put("team_activity_id", tt.getId());
-            out.put("report", (new JSONObject(hm)).toString());
+            out.put("report", hm);
             out.put("datetime", (new DateTime()).toString());
-            sendReport(out);
+            tsr.put("team_activity_report", out);
+            sendReport(tsr);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -158,17 +161,12 @@ public class TaskReportActivity extends AppCompatActivity implements View.OnClic
     private void sendReport(final JSONObject out) {
         String url = Config.URL_TEAM_ACTIVITY_REPORT+"?access_token="+pref.getAccessToken();
         TextLogHelper.log(url);
-        StringRequest strReq = new StringRequest(Request.Method.POST,
-                url, new Response.Listener<String>() {
+        JsonObjectRequest strReq = new JsonObjectRequest (Request.Method.POST,
+                url, out, new Response.Listener<JSONObject>() {
             @Override
-            public void onResponse(String response) {
-                try {
-                    JSONObject responseObj = new JSONObject(response);
-                    TextLogHelper.log("RESPONSE: " + responseObj.toString());
-                } catch (JSONException e) {
-                    TextLogHelper.log("Error: " + e.getMessage());
-                }
-
+            public void onResponse(JSONObject response) {
+                JSONObject responseObj = response;
+                TextLogHelper.log("RESPONSE: " + responseObj.toString());
             }
         }, new Response.ErrorListener() {
             @Override
@@ -176,14 +174,7 @@ public class TaskReportActivity extends AppCompatActivity implements View.OnClic
                 TextLogHelper.log("Error: " + error.getMessage());
                 TextLogHelper.toast(getApplicationContext(), error.getMessage(), false);
             }
-        }){
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("team_activity_report", out.toString());
-                return params;
-            }
-        };
+        });
 
         int socketTimeout = 10000;
         RetryPolicy policy = new DefaultRetryPolicy(socketTimeout,
@@ -194,6 +185,8 @@ public class TaskReportActivity extends AppCompatActivity implements View.OnClic
         // Adding request to request queue
         MyApplication.getInstance().addToRequestQueue(strReq);
     }
+
+
 
     @Override
     public void onClick(View v) {

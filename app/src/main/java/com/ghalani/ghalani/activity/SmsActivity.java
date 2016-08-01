@@ -287,7 +287,7 @@ public class SmsActivity extends AppCompatActivity implements View.OnClickListen
 
         @Override
         public boolean isViewFromObject(View view, Object object) {
-            return view == ((View) object);
+            return view == object;
         }
 
         public Object instantiateItem(View collection, int position) {
