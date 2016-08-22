@@ -65,27 +65,27 @@ public class HttpService extends IntentService {
 
                 @Override
                 public void onResponse(String response) {
+                    Log.d(TAG, response.toString());
                     try {
-                        Log.d(TAG, response.toString());
                         JSONObject responseObj = new JSONObject(response);
                         TextLogHelper.log("JSON: " + responseObj.toString());
-                        try{
+                        if (responseObj.has("error")) {
                             String error = responseObj.getString("error");
                             Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
-                        }catch (Exception e) {
+                        }else {
                             String message = responseObj.getString("message");
                             // parsing the user profile information
                             JSONObject profileObj = responseObj.getJSONObject("profile");
 
-                            /*String name = profileObj.getString("name");
-                            String email = profileObj.getString("email");*/
+                            String name = profileObj.getString("name");
+                            /*String email = profileObj.getString("email");*/
                             String mobile = profileObj.getString("phone");
                             String accessToken = profileObj.getString("access_token");
                             String id = String.valueOf(profileObj.getInt("id"));
 
                             PrefManager pref = new PrefManager(getApplicationContext());
 //                            pref.createLogin(name, email, mobile);
-                            pref.createLogin(mobile, accessToken, id);
+                            pref.createLogin(mobile, accessToken, id, name);
 
                             Intent intent = new Intent(HttpService.this, MainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -94,6 +94,7 @@ public class HttpService extends IntentService {
                             Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
                         }
                     }catch (JSONException e){
+                        TextLogHelper.log("SERVER: " + Config.URL_ROOT);
                         Toast.makeText(getApplicationContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 }

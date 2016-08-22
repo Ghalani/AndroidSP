@@ -58,6 +58,9 @@ public class PrefManager {
     public String getMobileNumber() {
         return pref.getString(KEY_MOBILE_NUMBER, null);
     }
+    public String getName() {
+        return pref.getString(KEY_NAME, "");
+    }
     public String getSPId() {
         return pref.getString(KEY_SP_ID, null);
     }
@@ -73,10 +76,12 @@ public class PrefManager {
         editor.commit();
     }*/
 
-    public void createLogin(String mobile, String accessToken, String id) {
+    public void createLogin(String mobile, String accessToken, String id, String name) {
         editor.putString(KEY_MOBILE, mobile);
         editor.putString(KEY_SP_ID, id);
         editor.putString(KEY_ACCESS_TOKEN, accessToken);
+        editor.putString(KEY_NAME, name);
+        TextLogHelper.log("NAME: " + name);
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
         editor.commit();
     }
@@ -92,7 +97,7 @@ public class PrefManager {
 
     public HashMap<String, String> getUserDetails() {
         HashMap<String, String> profile = new HashMap<>();
-        profile.put("name", pref.getString(KEY_NAME, null));
+        profile.put("name", pref.getString(KEY_NAME, ""));
         profile.put("email", pref.getString(KEY_EMAIL, null));
         profile.put("mobile", pref.getString(KEY_MOBILE, null));
         return profile;

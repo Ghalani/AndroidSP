@@ -8,6 +8,7 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 
 import com.ghalani.ghalani.app.Config;
+import com.ghalani.ghalani.helper.PrefManager;
 import com.ghalani.ghalani.helper.TextLogHelper;
 import com.ghalani.ghalani.service.HttpService;
 
@@ -20,6 +21,7 @@ public class SmsReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         TextLogHelper.log("SMS RECEIVED");
+        PrefManager pref = new PrefManager(context);
         final Bundle bundle = intent.getExtras();
         try {
             if (bundle != null) {
@@ -44,6 +46,7 @@ public class SmsReceiver extends BroadcastReceiver {
 
                     Intent hhtpIntent = new Intent(context, HttpService.class);
                     hhtpIntent.putExtra("otp", verificationCode);
+                    hhtpIntent.putExtra("phone", pref.getMobileNumber());
                     context.startService(hhtpIntent);
                 }
             }
@@ -61,10 +64,10 @@ public class SmsReceiver extends BroadcastReceiver {
      */
     private String getVerificationCode(String message) {
         String code = null;
-        int index = message.indexOf(Config.OTP_DELIMITER);
+        int index = message.indexOf(Config.OTP_DELIMITER) + Config.OTP_DELIMITER.length();
 
         if (index != -1) {
-            int start = index + 2;
+            int start = index + 1;
             int length = 6;
             code = message.substring(start, start + length);
             return code;

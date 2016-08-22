@@ -1,5 +1,6 @@
 package com.ghalani.ghalani.activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -28,6 +29,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.ghalani.ghalani.R;
 import com.ghalani.ghalani.app.Config;
 import com.ghalani.ghalani.app.MyApplication;
+import com.ghalani.ghalani.db.FarmerDBHelper;
 import com.ghalani.ghalani.helper.PrefManager;
 import com.ghalani.ghalani.helper.TextLogHelper;
 import com.ghalani.ghalani.item.team.Team;
@@ -38,6 +40,7 @@ import com.github.ybq.android.spinkit.style.ThreeBounce;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener {
@@ -50,12 +53,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private List<Team> teamList;
     ProgressBar progressBar;
     FloatingActionButton reloadBut;
+    public static Context rootCtx;
+    FarmerDBHelper fDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        rootCtx = this.getBaseContext();
+        fDB = new FarmerDBHelper(this);
         //toolbar = (Toolbar) findViewById(R.id.toolbar);
         //getActionBar().setTitle("Hello world App");
         getSupportActionBar().setTitle("Home");  // provide compatibility to all the versions
@@ -78,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         ThreeBounce tb = new ThreeBounce(); // https://android-arsenal.com/details/1/3305
         progressBar.setIndeterminateDrawable(tb);
         initTeams();
+        loadFarmers();
 
         // Displaying user information from shared preferences
         HashMap<String, String> profile = pref.getUserDetails();
@@ -106,16 +113,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                 try {
                     JSONObject responseObj = new JSONObject(response);
-                    JSONArray teams = responseObj.getJSONObject("service_provider").getJSONArray("teams");
-                    teamList.clear();
-                    int i = 0;
-                    while (i < teams.length()){
-                        JSONObject t = teams.getJSONObject(i);
-                        Team tm = new Team(t.getString("id"), t.getString("name"), t.getJSONObject("manager").getString("id"));
-                        teamList.add(tm);
-                        i++;
+                    if (responseObj.has("error")){
+                        TextLogHelper.toast(MainActivity.this, "Login agin", true);
+                        logout();
+                    }else{
+                        JSONArray teams = responseObj.getJSONObject("service_provider").getJSONArray("teams");
+                        teamList.clear();
+                        int i = 0;
+                        while (i < teams.length()){
+                            JSONObject t = teams.getJSONObject(i);
+                            Team tm = new Team(t.getString("id"), t.getString("name"), t.getJSONObject("manager").getString("id"));
+                            teamList.add(tm);
+                            i++;
+                        }
+                        adapter.notifyDataSetChanged();
                     }
-                    adapter.notifyDataSetChanged();
                 } catch (JSONException e) {
                     Toast.makeText(getApplicationContext(),
                             "Error: " + e.getMessage(),
@@ -146,6 +158,53 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         MyApplication.getInstance().addToRequestQueue(strReq);
     }
 
+    private void loadFarmers() {
+        StringRequest strReq = new StringRequest(Request.Method.GET,
+                Config.URL_ROOT+"/service_providers/"+pref.getSPId()+"/get_farmers", new Response.Listener<String>() {
+
+            @Override
+            public void onResponse(String response) {
+                TextLogHelper.log("FARMERS: " + response.toString());
+                try {
+                    JSONObject responseObj = new JSONObject(response);
+                    if (responseObj.has("error")){
+                        TextLogHelper.log("Farmers were not loaded");
+                    }else{
+                        JSONArray farmers = responseObj.getJSONArray("service_providers");
+                        fDB.deleteAll();
+                        int i = 0;
+                        while (i < farmers.length()) {
+                            JSONObject t = farmers.getJSONObject(i);
+                            // addFarmer (int id, String phone, String fname, String lname, String gender, String dob, String img)
+                            fDB.addFarmer(t.getInt("id"), t.getString("phone"),
+                                    t.getString("fname"), t.getString("lname"),
+                                    t.getString("gender"), t.getString("dob"), t.getJSONObject("image_url").getString("thumb"));
+                            i++;
+                            //adapter.notifyDataSetChanged();
+                        }
+                    }
+                } catch (JSONException e) {
+                    TextLogHelper.log("JSON-Error: " + e.getMessage());
+                }
+
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                TextLogHelper.log("Error: Unable to connect to server" + error.getMessage());
+            }
+        });
+
+        int socketTimeout = 15000;
+        RetryPolicy policy = new DefaultRetryPolicy(socketTimeout,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+        strReq.setRetryPolicy(policy);
+
+        // Adding request to request queue
+        MyApplication.getInstance().addToRequestQueue(strReq);
+    }
     /**
      * Logging out user
      * will clear all user shared preferences and navigate to
@@ -167,7 +226,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent i;
         switch (item.getItemId()) {
+            case R.id.action_settings:
+                i = new Intent(this, MyPreferencesActivity.class);
+                startActivity(i);
+                return true;
+            case R.id.action_qr:
+                i = new Intent(this,FarmerQRActivity.class);
+                startActivity(i);
+                return true;
             case R.id.action_logout:
                 logout();
                 break;

@@ -67,7 +67,7 @@ public class TeamTaskActivity extends AppCompatActivity implements View.OnClickL
         final DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");
         startDate = daysBetween(LocalDate.now(), dtf.parseLocalDate(tt.getStart()));
         endDate = daysBetween(LocalDate.now(), dtf.parseLocalDate(tt.getEnd()));
-        start.setText((startDate == 0 ? "today" : startDate + "days ") + (startDate < 0 ? "ago" : ""));
+        start.setText((startDate == 0 ? "today" : Math.abs(startDate) + " days ") + (startDate < 0 ? "ago" : ""));
         end.setText((endDate == 0 ? "today" : endDate + "days ") + (endDate < 0 ? "ago" : ""));
         /*TextLogHelper.log("Start: " + daysBetween(LocalDate.now(), dtf.parseLocalDate(tt.getStart())));
         TextLogHelper.log("End: " + daysBetween(LocalDate.now(), dtf.parseLocalDate(tt.getEnd())));*/

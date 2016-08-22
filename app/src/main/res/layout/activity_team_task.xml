@@ -21,7 +21,9 @@
             android:layout_marginBottom="15dp"/>
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_corners"
+            android:padding="12dp">
             <TextView
                 android:id="@+id/team_task_start"
                 android:layout_width="0dp"
@@ -32,6 +34,21 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Farm: "
+                android:textSize="18sp"/>
+            <TextView
+                android:id="@+id/team_task_farm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="30sp"/>
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
@@ -53,34 +70,27 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginBottom="15dp">
+            android:layout_marginBottom="15dp"
+            android:background="@drawable/rounded_corners"
+            android:padding="12dp">
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Manager Comment: "
                 android:textSize="18sp"/>
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="2dip"
+                android:background="#FFEEEEEE"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"/>
             <TextView
                 android:id="@+id/team_task_comment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="25sp"/>
         </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Farm: "
-                android:textSize="18sp"/>
-            <TextView
-                android:id="@+id/team_task_farm"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="30sp"/>
 
-        </LinearLayout>
     </LinearLayout>
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/report_but"
